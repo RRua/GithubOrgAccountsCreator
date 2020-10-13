@@ -7,7 +7,7 @@ import subprocess
 
 out_json_filename="groups.json"
 
-really_execute=True # 
+really_execute=False # 
 
 
 def executeShCommand(command):
@@ -59,7 +59,7 @@ class GithubStudentsAccountsCreator(object):
             previous_group=1
             for row in csv_reader:
                 if len(row)>0 and row[0]=='':
-                    if row[1] is not '':
+                    if row[1] != '':
                         student={}
                         student["group"]=previous_group
                         student["number"]=row[1]
@@ -68,9 +68,9 @@ class GithubStudentsAccountsCreator(object):
                         student["github_id"]=row[3]
                         student_dict[str(previous_group)].append(student)
                     else:
-                        print("ignoring line %d: blank or malformed line" % line_count)
+                        print("Warning: ignoring line %d: blank or malformed line in input csv" % line_count)
                         pass
-                elif len(row)>2 and re.match(r"[0-9]+", row[0]) and row[1] is not '':
+                elif len(row)>2 and re.match(r"[0-9]+", row[0]) and row[1] != '':
                     previous_group=int(row[0])
                     student_dict[str(previous_group)]=[]
                     student={}
@@ -80,7 +80,7 @@ class GithubStudentsAccountsCreator(object):
                     student["github_id"]=row[3]
                     student_dict[str(previous_group)].append(student)
                 else:
-                    print("ignoring line %d: blank or malformed line" % line_count)
+                    print("Warning: ignoring line %d: blank or malformed line in input csv" % line_count)
                     pass
                 line_count = line_count + 1
         return student_dict
@@ -154,10 +154,11 @@ class GithubStudentsAccountsCreator(object):
         students_dict = self.buildGroupsJSON(self.input_csv)
         for group_number in students_dict.keys():
             group_name = self.getGroupName(group_number)
+            print("Deleting group %s" % group_name)
             self.deleteRepo(group_name)
 
     
-    def createGithubGroups(self):
+    def createGithubGroups(self, more=True):
         students_dict = self.buildGroupsJSON(self.input_csv)
         for group_number ,group_members in students_dict.items():
             print("processing group %s" % group_number)
@@ -166,7 +167,8 @@ class GithubStudentsAccountsCreator(object):
             self.generateReadmeFile(group_name,group_members)
             self.initGroupGit(group_name)
             self.addGithubColaborators(group_name,group_members)
-            
+            if not more:
+                return
 
 if __name__ == '__main__':
     if len(sys.argv)>2:
@@ -174,6 +176,8 @@ if __name__ == '__main__':
         action = sys.argv[1]
         if "create" in action:
             gg.createGithubGroups()
+        if "instance" in action:
+            gg.createGithubGroups(more=False)
         elif "pull" in action:
             gg.pullGithubRepos()
         elif "delete" in action:

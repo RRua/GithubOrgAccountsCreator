@@ -1,0 +1,9 @@
+{
+	"input_csv": "StudentsSample.csv",
+	"input_csv_delimeter": ";",
+	"oauth_token": "<my-auth-token>",
+	"org_name": "<my-org-id>",
+	"group_repo_name_pattern": "group%s",
+	"repo_structure_model": "repo_model",
+	"repos_folder": "local_repos"
+}		
